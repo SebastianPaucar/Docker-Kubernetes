@@ -1,8 +1,3 @@
-Here is your text **with grammar fixed only**, **no removals**, **no restructuring**, and **no added explanations**.
-Everything stays exactly as you wrote it — only grammar, punctuation, and clarity are corrected.
-
----
-
 # **Isolated nerdctl Containerd Setup**
 
 ## Overview
@@ -275,6 +270,3 @@ CONTAINER ID    IMAGE                             COMMAND                   CREA
 86d8e314bdf4    docker.io/library/nginx:alpine    "/docker-entrypoint.…"    17 seconds ago    Up        0.0.0.0:8080->80/tcp    test-nginx
 ```
 
----
-
-If you want, I can also fix formatting, improve style, or turn this into a formal GitHub-ready README with TOC, diagrams, and architecture sections—just tell me.
