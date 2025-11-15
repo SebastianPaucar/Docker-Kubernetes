@@ -98,7 +98,7 @@ Which installs:
 
 2. **Nerdctl:**
 
-   * nerdctl is a Docker-compatible CLI for containerd, maintained independently. Talks directly to containerd, without a Docker daemon:
+   * `nerdctl` is a Docker-compatible CLI for containerd, maintained independently. Talks directly to `containerd`, without a Docker daemon:
 
    ```bash
    nerdctl --address /run/containerd/containerd.sock info
@@ -109,18 +109,18 @@ Which installs:
 
 3. **Socket and path separation:**
 
-   * Docker CE (with containerd.io) uses its own containerd instance via `/run/containerd/containerd.sock`.
-   * Nerdctl can use its own containerd instance (the full version includes the containerd binary) or you can point it to Docker CE’s containerd socket if desired via the command:
+   * Docker CE (with containerd.io) uses its own `containerd` instance via `/run/containerd/containerd.sock`.
+   * `nerdctl` can use its own `containerd` instance (the full version includes the `containerd` binary) or you can point it to Docker CE’s `containerd` socket if desired via the command:
 
    ```bash
    nerdctl --address /run/containerd/containerd.sock ps
    ```
 
-   * If you run nerdctl without `--address`, it defaults to `/run/containerd/containerd.sock`.
+   * If you run `nerdctl` without `--address`, it defaults to `/run/containerd/containerd.sock`.
 
-They are independent by default, but nerdctl can connect to the same containerd if you explicitly configure it. Nerdctl is just a CLI client for containerd. Nerdctl does not automatically start containerd. There is no socket created on installation (Full installation adds the containerd binary).
+They are independent by default, but `nerdctl` can connect to the same `containerd` if you explicitly configure it. `nerdctl` is just a CLI client for `containerd`. `nerdctl` does not automatically start `containerd`. There is no socket created on installation (Full installation adds the containerd binary).
 
-Containerd is a daemon. To create the socket `/run/containerd/containerd.sock`, it must be started. If Docker CE is installed, Docker starts containerd for you. If nerdctl is installed alone, you must either start containerd manually or use rootless containerd.
+`containerd` is a daemon. To create the socket `/run/containerd/containerd.sock`, it must be started. If Docker CE is installed, Docker starts containerd for you. If `nerdctl` is installed alone, you must either start containerd manually or use rootless `containerd`.
 
 ---
 

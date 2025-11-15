@@ -1,0 +1,20 @@
+[Unit]
+Description=containerd container runtime for nerdctl (isolated)
+After=network.target
+Wants=network.target
+
+[Service]
+ExecStart=/usr/local/bin/containerd --config /etc/containerd-nerdctl/config.toml
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=process
+Restart=always
+RestartSec=5
+Delegate=yes
+LimitNOFILE=1048576
+LimitNPROC=infinity
+TasksMax=infinity
+OOMScoreAdjust=-999
+Type=notify
+
+[Install]
+WantedBy=multi-user.target
