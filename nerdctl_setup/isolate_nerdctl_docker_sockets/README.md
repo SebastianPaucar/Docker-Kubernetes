@@ -21,7 +21,7 @@ The command:
      183730 /var/lib/rancher/k3s/data/86a616cdaf0fb57fa13670ac5a16f1699f4b2be4772e842d97904c69698ffdc2/bin/containerd-shim-runc-v2 -namespace k8s.io -id c3278b152146cf07c6fb8510677f24dfda012b28e42625d3615aa091edd43007 -address /run/k3s/containerd/containerd.sock
       183767 /var/lib/rancher/k3s/data/86a616cdaf0fb57fa13670ac5a16f1699f4b2be4772e842d97904c69698ffdc2/bin/containerd-shim-runc-v2 -namespace k8s.io -id d9cff4e2fc55d1d55f12d54c5f89898d0dff411e340741fd3a8b10b422ff481e -address /run/k3s/containerd/containerd.sock
        312067 /usr/local/bin/containerd
-       ```
+```
 
 lists all processes related to containerd. Here we can find:
 
@@ -85,7 +85,7 @@ mkdir -p /etc/containerd-nerdctl /run/containerd-nerdctl \
          /var/lib/containerd-nerdctl/{overlayfs,blockfile,btrfs,devmapper,erofs,native,zfs}
 	 chown -R root:root /var/lib/containerd-nerdctl /run/containerd-nerdctl
 	 chmod 755 /var/lib/containerd-nerdctl /run/containerd-nerdctl
-	 ```
+```
 
 ---
 
@@ -110,7 +110,7 @@ state = '/run/containerd-nerdctl'
 		          root_path = '/var/lib/containerd-nerdctl/native'
 			      root_path = '/var/lib/containerd-nerdctl/overlayfs'
 			          root_path = '/var/lib/containerd-nerdctl/zfs'
-				  ```
+```
 
 And also:
 
@@ -128,7 +128,7 @@ And also:
 													    …
 													    #[cgroup]
 													    #  path = '/nerdctl'
-													    ```
+```
 
 This completely separates nerdctl’s containerd instance from the system containerd used by k3s or Docker by setting `/run/containerd-nerdctl/containerd.sock` and `/var/lib/containerd-nerdctl/` to create a dedicated, isolated containerd root for nerdctl, with:
 
@@ -199,7 +199,7 @@ You can see:
 			        CPU: 146ms
 				     CGroup: /system.slice/containerd-nerdctl.service
 				                  └─433761 /usr/local/bin/containerd --config /etc/containerd-nerdctl/config.toml
-						  ```
+```
 
 ---
 
@@ -242,7 +242,7 @@ Server:
 		      Architecture:     x86_64
 		       CPUs:             16
 		        Total Memory:     62.42GiB
-			```
+```
 
 2. **Run a test nginx container**
 
