@@ -200,4 +200,71 @@ The `<big-random-secret>` is the actual cluster secret. It is used to authentica
 * `server`: indicates the role that a joining node must take when using this token. It means the token is for joining as a server (control-plane), but in K3s, the same token is also used for agents (K3s uses a unified token).
 * `<server-id>` is the Node ID (server identifier) of the master node. It uniquely identifies the control-plane instance (IP and port 6443). Workers use this ID to confirm they are talking to the correct server.
 
+## K3s containerd dedicated-socket
 
+This socket is created by the embedded containerd that k3s runs internally:
+
+```bash
+[root@thuner-gw38 ~]# ls  /var/run/k3s/containerd/
+containerd.sock        io.containerd.grpc.v1.cri      io.containerd.sandbox.controller.v1.shim
+containerd.sock.ttrpc  io.containerd.runtime.v2.task
+```
+
+It is ALWAYS present if k3s is running. Note that K3s uses the Kubernetes API server, not a `k3s.sock` socket. The Kubernetes API serverlistens on TCP port 6443, not on a Unix socket!
+
+```bash
+TCP/6443 → Kubernetes API server
+```
+
+There is no file like:
+
+```bash
+/var/run/k3s/k3s.sock
+```
+
+because k3s does not expose an API over a Unix socket. Note that the architecture of k3s is:
+
+```bash
+k3s binary
+├── supervises embedded containerd
+├── supervises kube-apiserver (TCP/6443)
+├── supervises kubelet
+├── supervises scheduler
+└── supervises controller-manager
+```
+
+So the correct sockets are:
+
+* **Kubernetes API**: `tcp://127.0.0.1:6443`
+* **k3s internal containerd**: `/run/k3s/containerd/containerd.sock`
+
+The systemd containerd and nerdctl-containerd is completely separate from the k3s-internal containerd.
+
+When k3s runs in server mode, it launches its own private containerd instance instead of using the system one! This private containerd runs sandboxed under:
+
+```bash
+/run/k3s/containerd/
+```
+
+and exposes its CRI endpoint at:
+
+```bash
+/run/k3s/containerd/containerd.sock
+```
+
+This is the runtime used by all Pods, Deployments, and Kubernetes workloads inside the k3s cluster.
+* Docker does NOT touch this containerd.
+* System containerd does NOT touch this one.
+* `nerdctl` does NOT touch this one.
+* Only k3s uses this embedded runtime.
+
+```bash
+[root@thuner-gw38 ~]# ls -l /var/run/docker.sock
+srw-rw----. 1 root docker 0 Nov  9 15:49 /var/run/docker.sock
+[root@thuner-gw38 ~]# ls -l /run/containerd/containerd.sock
+srw-rw----. 1 root root 0 Nov 14 18:10 /run/containerd/containerd.sock
+[root@thuner-gw38 ~]# ls -l /run/containerd-nerdctl/containerd.sock
+srw-rw----. 1 root root 0 Nov 14 18:05 /run/containerd-nerdctl/containerd.sock
+[root@thuner-gw38 ~]# ls -l /run/k3s/containerd/containerd.sock
+srw-rw----. 1 root root 0 Nov 10 19:34 /run/k3s/containerd/containerd.sock
+```
