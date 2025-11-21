@@ -193,9 +193,16 @@ That means the K3s worker is using the K3s `containerd`.
 In k3s, `crictl` talks to `/run/k3s/containerd/containerd.sock` (NOT the raw containerd socket). This socket exposes only the CRI API, not all containerd features! Some examples are:
 
 ```bash
-k3s crictl ps
-k3s crictl images
-k3s crictl inspect <container>
+[root@thuner-gw39 ~]# k3s crictl ps
+CONTAINER           IMAGE               CREATED             STATE               NAME                ATTEMPT             POD ID              POD                            NAMESPACE
+637f11e8fa2eb       f7415d0003cb6       10 days ago         Running             lb-tcp-443          0                   28520b4a9a252       svclb-traefik-57d0a611-2xlrg   kube-system
+3674cac23a7a9       f7415d0003cb6       10 days ago         Running             lb-tcp-80           0                   28520b4a9a252       svclb-traefik-57d0a611-2xlrg   kube-system
+[root@thuner-gw39 ~]# k3s crictl images
+IMAGE                              TAG                 IMAGE ID            SIZE
+docker.io/library/rocky8-demo      latest              5950bc5bcb9b5       77.3MB
+docker.io/rancher/mirrored-pause   3.6                 6270bb605e12e       301kB
+<none>                             <none>              ee29d6321116a       77.3MB
+docker.io/rancher/klipper-lb       v0.4.13             f7415d0003cb6       5.02MB
 ```
 
 This  shows **exactly what kubelet sees**! Use  to check if Kubernetes actually sees the image! Correct command:
@@ -231,8 +238,24 @@ k3s ctr -n k8s.io images import rocky8-demo.tar
 Some examples are:
 
 ```bash
-k3s ctr -n k8s.io images ls
-k3s ctr -n k8s.io containers ls
+[root@thuner-gw39 ~]# k3s ctr -n k8s.io images ls
+REF                                                                                                      TYPE                                                      DIGEST                                                                  SIZE      PLATFORMS                                                      LABELS                          
+docker.io/library/rocky8-demo:latest                                                                     application/vnd.docker.distribution.manifest.v2+json      sha256:0de6ca232ee52115054f7deeb478dcd750479c30f6ffc7e61502983e098a9c86 73.7 MiB  linux/amd64                                                    io.cri-containerd.image=managed 
+docker.io/rancher/klipper-lb:v0.4.13                                                                     application/vnd.oci.image.index.v1+json                   sha256:7eb86d5b908ec6ddd9796253d8cc2f43df99420fc8b8a18452a94dc56f86aca0 4.8 MiB   linux/amd64,linux/arm/v7,linux/arm64                           io.cri-containerd.image=managed 
+docker.io/rancher/klipper-lb@sha256:7eb86d5b908ec6ddd9796253d8cc2f43df99420fc8b8a18452a94dc56f86aca0     application/vnd.oci.image.index.v1+json                   sha256:7eb86d5b908ec6ddd9796253d8cc2f43df99420fc8b8a18452a94dc56f86aca0 4.8 MiB   linux/amd64,linux/arm/v7,linux/arm64                           io.cri-containerd.image=managed 
+docker.io/rancher/mirrored-pause:3.6                                                                     application/vnd.docker.distribution.manifest.list.v2+json sha256:74c4244427b7312c5b901fe0f67cbc53683d06f4f24c6faee65d4182bf0fa893 294.4 KiB linux/amd64,linux/arm/v7,linux/arm64,linux/s390x,windows/amd64 io.cri-containerd.image=managed 
+docker.io/rancher/mirrored-pause@sha256:74c4244427b7312c5b901fe0f67cbc53683d06f4f24c6faee65d4182bf0fa893 application/vnd.docker.distribution.manifest.list.v2+json sha256:74c4244427b7312c5b901fe0f67cbc53683d06f4f24c6faee65d4182bf0fa893 294.4 KiB linux/amd64,linux/arm/v7,linux/arm64,linux/s390x,windows/amd64 io.cri-containerd.image=managed 
+sha256:5950bc5bcb9b563f5d4c3c529042a212330b9b328fcbd7f8dbdcf6c25caa7ee8                                  application/vnd.docker.distribution.manifest.v2+json      sha256:0de6ca232ee52115054f7deeb478dcd750479c30f6ffc7e61502983e098a9c86 73.7 MiB  linux/amd64                                                    io.cri-containerd.image=managed 
+sha256:6270bb605e12e581514ada5fd5b3216f727db55dc87d5889c790e4c760683fee                                  application/vnd.docker.distribution.manifest.list.v2+json sha256:74c4244427b7312c5b901fe0f67cbc53683d06f4f24c6faee65d4182bf0fa893 294.4 KiB linux/amd64,linux/arm/v7,linux/arm64,linux/s390x,windows/amd64 io.cri-containerd.image=managed 
+sha256:ee29d6321116af48cf9ecf604947c5d3638a2fd9c6cb8443543612c9184893e0                                  application/vnd.docker.distribution.manifest.v2+json      sha256:2206366b7eb2a2483e00527f4a0bedbb29a289b1ef800c746bc035f341eaff31 73.7 MiB  linux/amd64                                                    io.cri-containerd.image=managed 
+sha256:f7415d0003cb62ded390ed491fc842ee821878a04cc137196c21c1050101dd5e                                  application/vnd.oci.image.index.v1+json                   sha256:7eb86d5b908ec6ddd9796253d8cc2f43df99420fc8b8a18452a94dc56f86aca0 4.8 MiB   linux/amd64,linux/arm/v7,linux/arm64                           io.cri-containerd.image=managed 
+[root@thuner-gw39 ~]# k3s ctr -n k8s.io containers ls
+CONTAINER                                                           IMAGE                                   RUNTIME                  
+28520b4a9a252d5036e2acfa2567e9892c145cdb1628c8e63f59b63ec76ae185    docker.io/rancher/mirrored-pause:3.6    io.containerd.runc.v2    
+3674cac23a7a93be3dc1731718d54c0cce68bbd430f18fc1f20dc5cf448a701b    docker.io/rancher/klipper-lb:v0.4.13    io.containerd.runc.v2    
+5b539160ecbde9537767ee38accf51b1b493eead5458c6ef06f6a8792970bcf1    docker.io/rancher/mirrored-pause:3.6    io.containerd.runc.v2    
+61f818b4a5411ecf429ef81445233f887eb27e907f9394b215981237aaaf9e30    docker.io/library/rocky8-demo:latest    io.containerd.runc.v2    
+637f11e8fa2ebb1f29353e9400bb94616c46621a857ff27787be8e1054c4a1d9    docker.io/rancher/klipper-lb:v0.4.13    io.containerd.runc.v2    
 ```
 
 ---
