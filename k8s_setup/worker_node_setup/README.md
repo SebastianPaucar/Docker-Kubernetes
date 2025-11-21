@@ -174,3 +174,83 @@ That means the K3s worker is using the K3s `containerd`.
   * Docker installed, or
   * `nerdctl` (the `containerd` client for building images), or
   * Build images elsewhere and push them to a registry.
+
+---
+
+## `crictl` vs `ctr`: What’s the difference?
+
+### `crictl`:
+
+`crictl` is the Kubernetes-facing tool. It talks to the CRI (Container Runtime Interface): the API layer that Kubernetes uses to manage containers!
+
+#### **What it is for:**
+
+* Checking pods and containers that Kubernetes created.
+* Debugging kubelet → container runtime issues.
+* Pulling images *as Kubernetes would do*.
+* Seeing the sandboxes (pods) and containers controlled by kubelet.
+
+In k3s, `crictl` talks to `/run/k3s/containerd/containerd.sock` (NOT the raw containerd socket). This socket exposes only the CRI API, not all containerd features! Some examples are:
+
+```bash
+k3s crictl ps
+k3s crictl images
+k3s crictl inspect <container>
+```
+
+This  shows **exactly what kubelet sees**! Use  to check if Kubernetes actually sees the image! Correct command:
+
+```bash
+k3s crictl images | grep rocky
+```
+
+### `ctr`
+
+**ctr is the low-level containerd CLI**. It talks directly to containerd’s internal APIs.
+
+#### **What it is for:**
+
+* Debugging containerd itself.
+* Managing images manually.
+* Loading images (`ctr images import`).
+* Inspecting namespaces (`ctr -n k8s.io`).
+* Working with snapshots.
+
+In k3s, `ctr` connects to `/run/k3s/containerd/containerd.sock`, but **you must specify the namespace**:
+
+* Kubernetes uses the namespace → `k8s.io`
+* Nerdctl uses → `default`
+* System containers may use → `containerd.io`
+
+For loading images in k3s, we should use `ctr` because `crictl` *cannot import images*. Correct command for this:
+
+```bash
+k3s ctr -n k8s.io images import rocky8-demo.tar
+```
+
+Some examples are:
+
+```bash
+k3s ctr -n k8s.io images ls
+k3s ctr -n k8s.io containers ls
+```
+
+---
+
+### Big Differences
+
+
+| Feature             | crictl                     | ctr                                   |
+| ------------------- | -------------------------- | ------------------------------------- |
+| API Level           | High (CRI)                 | Low (containerd internal)             |
+| Scope               | Only Kubernetes containers | Everything in containerd              |
+| Socket              | CRI socket                 | containerd socket                     |
+| Namespace awareness | No                         | Requires `-n k8s.io`                  |
+| Image import        | No                         | Yes (`ctr images import`)           |
+| Ideal for           | K8s debugging              | Containerd debugging / loading images |
+
+* **crictl = what Kubernetes sees**
+* **ctr = what containerd sees**
+* Kubernetes jobs/pods only see images in:
+  → `ctr -n k8s.io`
+
