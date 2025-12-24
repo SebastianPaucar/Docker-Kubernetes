@@ -1,0 +1,13 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rocky8-test-job-docker-hub
+spec:
+  template:
+    spec:
+      containers:
+      - name: rocky8-demo
+        image: docker.io/sebastianpaucar/rocky8-test-docker-hub:latest
+        imagePullPolicy: Always
+      restartPolicy: Never
+  backoffLimit: 0
