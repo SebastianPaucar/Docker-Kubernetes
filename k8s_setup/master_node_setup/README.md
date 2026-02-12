@@ -3,8 +3,8 @@
 This document describes the installation, configuration, and validation steps for a **Kubernetes mini cluster** using **K3s**, focused on the master node.
 The deployment consists of:
 
-* **thuner-gw38** → *Control-plane / Master node*
-* **thuner-gw39** → *Worker / Agent node*
+* **lab-x38** → *Control-plane / Master node*
+* **lab-x39** → *Worker / Agent node*
 
 The cluster uses **containerd (K3s-managed runtime)** for Kubernetes workloads.
 
@@ -26,18 +26,18 @@ This downloads the k3s binary into /usr/local/bin/k3s (from the install script (
 Files created:
 
 ```bash
-[root@thuner-gw38 ~]# ls /usr/local/bin/k3s
+[root@lab-x38 ~]# ls /usr/local/bin/k3s
 /usr/local/bin/k3s
-[root@thuner-gw38 ~]# ls /etc/systemd/system/k3s.service
+[root@lab-x38 ~]# ls /etc/systemd/system/k3s.service
 /etc/systemd/system/k3s.service
-[root@thuner-gw38 ~]# ls /var/lib/rancher/k3s/server/node-token
+[root@lab-x38 ~]# ls /var/lib/rancher/k3s/server/node-token
 /var/lib/rancher/k3s/server/node-token
-[root@thuner-gw38 ~]# ls /etc/rancher/k3s/k3s.yaml
+[root@lab-x38 ~]# ls /etc/rancher/k3s/k3s.yaml
 /etc/rancher/k3s/k3s.yaml
-[root@thuner-gw38 ~]# ls /run/k3s/containerd/
+[root@lab-x38 ~]# ls /run/k3s/containerd/
 containerd.sock        io.containerd.grpc.v1.cri      io.containerd.sandbox.controller.v1.shim
 containerd.sock.ttrpc  io.containerd.runtime.v2.task
-[root@thuner-gw38 ~]# ls /var/lib/rancher/k3s/agent/etc/containerd/
+[root@lab-x38 ~]# ls /var/lib/rancher/k3s/agent/etc/containerd/
 config.toml
 ```
 
@@ -53,7 +53,7 @@ config.toml
 Created at `/etc/systemd/system/k3s.service`:
 
 ```ini
-[root@thuner-gw38 system]# cat k3s.service
+[root@lab-x38 system]# cat k3s.service
 [Unit]
 Description=Lightweight Kubernetes
 Documentation=https://k3s.io
@@ -104,7 +104,7 @@ When k3s server starts, it initializes the Kubernetes control plane and starts a
 We must verify the Kubernetes API server (port 6443). To check that the API server is listening locally (it must run on the master node or from any node trying to reach it):
 
 ```bash
-[root@thuner-gw38 ~]# ss -tulpn | grep 6443
+[root@lab-x38 ~]# ss -tulpn | grep 6443
 tcp   LISTEN 0      4096               *:6443             *:*    users:(("k3s-server",pid=181873,fd=12))                 
 ```
 
@@ -124,10 +124,10 @@ kubectl get nodes -o wide
 Output:
 
 ```bash
-[root@thuner-gw38 ~]# k3s kubectl get nodes
+[root@lab-x38 ~]# k3s kubectl get nodes
 NAME              STATUS   ROLES                  AGE     VERSION
-thuner-gw38.cpp   Ready    control-plane,master   4d21h   v1.33.5+k3s1
-thuner-gw39.cpp   Ready    <none>                 4d21h   v1.33.5+k3s1
+lab-x38.cpp   Ready    control-plane,master   4d21h   v1.33.5+k3s1
+lab-x39.cpp   Ready    <none>                 4d21h   v1.33.5+k3s1
 ```
 
 That means gw38 is ready: kubelet on this node is healthy and connected. The `control-plane,master` role means this node runs:
@@ -149,7 +149,7 @@ gw39 shows it is Ready: the node is healthy.
 * This node only runs workloads (pods).
 
 ```bash
-[root@thuner-gw38 ~]# k3s kubectl get pods -A
+[root@lab-x38 ~]# k3s kubectl get pods -A
 NAMESPACE     NAME                                      READY   STATUS             RESTARTS         AGE
 default       rocky8-demo-f85c4b8cf-nlcz8               0/1     CrashLoopBackOff   817 (3m2s ago)   2d21h
 kube-system   coredns-64fd4b4794-rmcbl                  1/1     Running            0                4d21h
@@ -165,7 +165,7 @@ kube-system   traefik-c98fdf6fb-w9l9w                   1/1     Running         
 That means we deployed a pod named rocky8-demo. It is crashing continuously (CrashLoopBackOff = the pod fails → restarts → fails → restarts), and 817 restarts means Kubernetes tried 817 times to revive it. Other important components (coredns, helm-install-traefik, svclb-traefik, local-path-provisioner, traefik, and metrics-server) are healthy. The control plane is highly healthy.
 
 ```bash
-[root@thuner-gw38 ~]# kubectl cluster-info
+[root@lab-x38 ~]# kubectl cluster-info
 Kubernetes control plane is running at https://127.0.0.1:6443
 CoreDNS is running at https://127.0.0.1:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 Metrics-server is running at https://127.0.0.1:6443/api/v1/namespaces/kube-system/services/https:metrics-server:https/proxy
@@ -176,16 +176,16 @@ To further debug and diagnose cluster problems, use 'kubectl cluster-info dump'.
 This means the API server is listening on localhost:6443 on gw38, and the kubeconfig that k3s gives you points API requests to 127.0.0.1. kubectl connects to a local proxy that forwards to the real k3s API.
 
 ```bash
-[root@thuner-gw38 ~]# kubectl get nodes -o wide
+[root@lab-x38 ~]# kubectl get nodes -o wide
 NAME                          STATUS   ROLES                  AGE     VERSION        INTERNAL-IP      EXTERNAL-IP   OS-IMAGE                      KERNEL-VERSION                 CONTAINER-RUNTIME
-thuner-gw38.cpp   Ready    control-plane,master   4d21h   v1.33.5+k3s1   XXX.YYY.ZZZ.AB   <none>        AlmaLinux 9.5 (Teal Serval)   5.14.0-503.11.1.el9_5.x86_64   containerd://2.1.4-k3s1
-thuner-gw39   Ready    <none>                 4d21h   v1.33.5+k3s1   XXX.YYY.ZZZ.AB   <none>        AlmaLinux 9.5 (Teal Serval)   5.14.0-503.11.1.el9_5.x86_64   containerd://2.1.4-k3s1
+lab-x38.cpp   Ready    control-plane,master   4d21h   v1.33.5+k3s1   XXX.YYY.ZZZ.AB   <none>        AlmaLinux 9.5 (Teal Serval)   5.14.0-503.11.1.el9_5.x86_64   containerd://2.1.4-k3s1
+lab-x39   Ready    <none>                 4d21h   v1.33.5+k3s1   XXX.YYY.ZZZ.AB   <none>        AlmaLinux 9.5 (Teal Serval)   5.14.0-503.11.1.el9_5.x86_64   containerd://2.1.4-k3s1
 ```
 
 This confirms gw38 master node IP, gw39 worker node IP, the OS, the kernel, and the runtime.
 
 ```bash
-[root@thuner-gw38 ~]# cat /var/lib/rancher/k3s/server/node-token
+[root@lab-x38 ~]# cat /var/lib/rancher/k3s/server/node-token
 K10a9c….1
 ```
 
@@ -205,7 +205,7 @@ The `<big-random-secret>` is the actual cluster secret. It is used to authentica
 This socket is created by the embedded containerd that k3s runs internally:
 
 ```bash
-[root@thuner-gw38 ~]# ls  /var/run/k3s/containerd/
+[root@lab-x38 ~]# ls  /var/run/k3s/containerd/
 containerd.sock        io.containerd.grpc.v1.cri      io.containerd.sandbox.controller.v1.shim
 containerd.sock.ttrpc  io.containerd.runtime.v2.task
 ```
@@ -259,12 +259,12 @@ This is the runtime used by all Pods, Deployments, and Kubernetes workloads insi
 * Only k3s uses this embedded runtime.
 
 ```bash
-[root@thuner-gw38 ~]# ls -l /var/run/docker.sock
+[root@lab-x38 ~]# ls -l /var/run/docker.sock
 srw-rw----. 1 root docker 0 Nov  9 15:49 /var/run/docker.sock
-[root@thuner-gw38 ~]# ls -l /run/containerd/containerd.sock
+[root@lab-x38 ~]# ls -l /run/containerd/containerd.sock
 srw-rw----. 1 root root 0 Nov 14 18:10 /run/containerd/containerd.sock
-[root@thuner-gw38 ~]# ls -l /run/containerd-nerdctl/containerd.sock
+[root@lab-x38 ~]# ls -l /run/containerd-nerdctl/containerd.sock
 srw-rw----. 1 root root 0 Nov 14 18:05 /run/containerd-nerdctl/containerd.sock
-[root@thuner-gw38 ~]# ls -l /run/k3s/containerd/containerd.sock
+[root@lab-x38 ~]# ls -l /run/k3s/containerd/containerd.sock
 srw-rw----. 1 root root 0 Nov 10 19:34 /run/k3s/containerd/containerd.sock
 ```

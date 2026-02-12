@@ -85,7 +85,7 @@ You can observe the running daemon via:
 
 ```bash
 ps aux | grep dockerd
-[root@thuner-gw50 ~]# ps aux | grep dockerd
+[root@lab-x50 ~]# ps aux | grep dockerd
 root 1143 0.0 0.1 3484368 105556 ? Ssl May20 25:15 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
 root 3551234 0.0 0.0 3876 2304 pts/0 S+ 16:36 0:00 grep --color=auto dockerd
 ```

@@ -13,7 +13,7 @@ This is essentially a full “dual container runtime setup” on your node, with
 The command:
 
 ```bash
-[root@thuner-gw38 ~]# ps -eo pid,cmd | grep -E 'containerd' | grep -v grep || true
+[root@lab-x38 ~]# ps -eo pid,cmd | grep -E 'containerd' | grep -v grep || true
  181907 containerd
   182566 /var/lib/rancher/k3s/data/86a616cdaf0fb57fa13670ac5a16f1699f4b2be4772e842d97904c69698ffdc2/bin/containerd-shim-runc-v2 -namespace k8s.io -id 5a6a3c8636c3b4015b01ce127c1cbc5ce0d3e4751de1a29d79690a89cd41acee -address /run/k3s/containerd/containerd.sock
    182610 /var/lib/rancher/k3s/data/86a616cdaf0fb57fa13670ac5a16f1699f4b2be4772e842d97904c69698ffdc2/bin/containerd-shim-runc-v2 -namespace k8s.io -id e162d2bee52ff78a90c84c181de203f16e028b8dfa334d4f185dbbca7d4289d7 -address /run/k3s/containerd/containerd.sock
@@ -31,7 +31,7 @@ lists all processes related to containerd. Here we can find:
 Then the command:
 
 ```bash
-[root@thuner-gw38 ~]# ss -lx | grep containerd || ls -l /run/containerd* /run/*containerd* 2>/dev/null || true
+[root@lab-x38 ~]# ss -lx | grep containerd || ls -l /run/containerd* /run/*containerd* 2>/dev/null || true
 u_str LISTEN 0      4096                                            /run/k3s/containerd/containerd.sock.ttrpc 2981483            * 0
 u_str LISTEN 0      4096                                                  /run/k3s/containerd/containerd.sock 2981484            * 0
 u_str LISTEN 0      4096   /run/containerd/s/c66eab0b954e0e90379fefbda67abe10c873dfd11aaddfcebcd9c0090a571611 2991290            * 0
@@ -98,7 +98,7 @@ containerd config default > /etc/containerd-nerdctl/config.toml
 Edit `/etc/containerd-nerdctl/config.toml` to use:
 
 ```bash
-[root@thuner-gw38 ~]# grep nerdctl /etc/containerd-nerdctl/config.toml
+[root@lab-x38 ~]# grep nerdctl /etc/containerd-nerdctl/config.toml
 root = '/var/lib/containerd-nerdctl'
 state = '/run/containerd-nerdctl'
   address = '/run/containerd-nerdctl/containerd.sock'
@@ -155,7 +155,7 @@ with no collisions, no accidental use of the wrong containerd, and 100% predicta
 Touch `/etc/systemd/system/containerd-nerdctl.service` and edit it like this:
 
 ```bash
-[root@thuner-gw38 ~]# cat  /etc/systemd/system/containerd-nerdctl.service
+[root@lab-x38 ~]# cat  /etc/systemd/system/containerd-nerdctl.service
 [Unit]
 Description=containerd container runtime for nerdctl (isolated)
 After=network.target
@@ -189,7 +189,7 @@ systemctl status containerd-nerdctl
 You can see:
 
 ```bash
-[root@thuner-gw38 ~]# systemctl status containerd-nerdctl
+[root@lab-x38 ~]# systemctl status containerd-nerdctl
 ● containerd-nerdctl.service - containerd container runtime for nerdctl (isolated)
      Loaded: loaded (/etc/systemd/system/containerd-nerdctl.service; enabled; preset: disabled)
           Active: active (running) since Fri 2025-11-14 17:57:50 MST; 1min 46s ago
@@ -206,7 +206,7 @@ You can see:
 6. **Verify nerdctl containerd sockets**
 
 ```bash
-[root@thuner-gw38 ~]# ss -lx | grep containerd-nerdctl
+[root@lab-x38 ~]# ss -lx | grep containerd-nerdctl
 u_str LISTEN 0      4096                                        /run/containerd-nerdctl/containerd.sock.ttrpc 7904716            * 0
 u_str LISTEN 0      4096                                              /run/containerd-nerdctl/containerd.sock 7904717            * 0
 ```
@@ -218,7 +218,7 @@ u_str LISTEN 0      4096                                              /run/conta
 1. **Check nerdctl info**
 
 ```bash
-[root@thuner-gw38 ~]# nerdctl --address=/run/containerd-nerdctl/containerd.sock info
+[root@lab-x38 ~]# nerdctl --address=/run/containerd-nerdctl/containerd.sock info
 Client:
  Namespace:	default
   Debug Mode:	false
@@ -247,7 +247,7 @@ Server:
 2. **Run a test nginx container**
 
 ```bash
-[root@thuner-gw38 ~]# nerdctl --address=/run/containerd-nerdctl/containerd.sock run -d --name test-nginx -p 8080:80 nginx:alpine
+[root@lab-x38 ~]# nerdctl --address=/run/containerd-nerdctl/containerd.sock run -d --name test-nginx -p 8080:80 nginx:alpine
 docker.io/library/nginx:alpine:                                                   resolved       |++++++++++++++++++++++++++++++++++++++| 
 index-sha256:b3c656d55d7ad751196f21b7fd2e8d4da9cb430e32f646adcf92441b72f82b14:    done           |++++++++++++++++++++++++++++++++++++++| 
 manifest-sha256:667473807103639a0aca5b49534a216d2b64f0fb868aaa801f023da0cdd781c7: done           |++++++++++++++++++++++++++++++++++++++| 
@@ -265,7 +265,7 @@ elapsed: 5.4 s                                                                  
 ```
 
 ```bash
-[root@thuner-gw38 ~]# nerdctl --address=/run/containerd-nerdctl/containerd.sock ps
+[root@lab-x38 ~]# nerdctl --address=/run/containerd-nerdctl/containerd.sock ps
 CONTAINER ID    IMAGE                             COMMAND                   CREATED           STATUS    PORTS                   NAMES
 86d8e314bdf4    docker.io/library/nginx:alpine    "/docker-entrypoint.…"    17 seconds ago    Up        0.0.0.0:8080->80/tcp    test-nginx
 ```

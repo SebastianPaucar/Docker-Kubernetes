@@ -15,7 +15,7 @@ nc -zv <MASTER_NODE_HOSTNAME> 6443
 Example:
 
 ```bash
-[root@thuner-gw39 ~]# nc -zv thuner-gw38 6443
+[root@lab-x39 ~]# nc -zv lab-x38 6443
 Ncat: Version 7.92 ( https://nmap.org/ncat )
 Ncat: Connected to XXX.YYY.ZZZ.AB:6443.
 Ncat: 0 bytes sent, 0 bytes received in 0.03 seconds.
@@ -48,7 +48,7 @@ curl -sfL https://get.k3s.io | K3S_URL=https://<MASTER_NODE_HOSTNAME>:6443 K3S_T
 Example:
 
 ```bash
-curl -sfL https://get.k3s.io | K3S_URL=https://thuner-gw38:6443 K3S_TOKEN=K1…401 sh -
+curl -sfL https://get.k3s.io | K3S_URL=https://lab-x38:6443 K3S_TOKEN=K1…401 sh -
 ```
 
 * This installs **k3s in agent mode**, connecting it to the master.
@@ -60,7 +60,7 @@ curl -sfL https://get.k3s.io | K3S_URL=https://thuner-gw38:6443 K3S_TOKEN=K1…4
 Check that the container runtime is running correctly:
 
 ```bash
-[root@thuner-gw39 ~]# k3s crictl info | grep runtimeType
+[root@lab-x39 ~]# k3s crictl info | grep runtimeType
           "runtimeType": "io.containerd.runc.v2",
           "runtimeType": "io.containerd.runhcs.v1",
 ```
@@ -80,10 +80,10 @@ k3s kubectl get nodes
 * The new worker should appear as `Ready`:
 
 ```
-[root@thuner-gw38 ~]# k3s kubectl get nodes
+[root@lab-x38 ~]# k3s kubectl get nodes
 NAME        STATUS   ROLES                  AGE     VERSION
-thuner-gw38   Ready    control-plane,master   4d23h   v1.33.5+k3s1
-thuner-gw39   Ready    <none>                 4d23h   v1.33.5+k3s1
+lab-x38   Ready    control-plane,master   4d23h   v1.33.5+k3s1
+lab-x39   Ready    <none>                 4d23h   v1.33.5+k3s1
 ```
 
 ---
@@ -145,7 +145,7 @@ Why it’s needed:
 **K3s installs its own `containerd` instance**. When you install `k3s-agent` (for the worker node setup), it comes with an embedded `containerd`. This is separate from any system Docker or `nerdctl`/`containerd` installation you may have!
 
 ```bash
-[root@thuner-gw39 ~]# ls -l /run/k3s/containerd/containerd.sock
+[root@lab-x39 ~]# ls -l /run/k3s/containerd/containerd.sock
 srw-rw----. 1 root root 0 Nov 10 19:43 /run/k3s/containerd/containerd.sock
 ```
 
@@ -153,9 +153,9 @@ srw-rw----. 1 root root 0 Nov 10 19:43 /run/k3s/containerd/containerd.sock
 * `k3s crictl` automatically points to this socket:
 
 ```bash
-[root@thuner-gw39 ~]# k3s crictl info | grep runtimeType
+[root@lab-x39 ~]# k3s crictl info | grep runtimeType
           "runtimeType": "io.containerd.runc.v2",
-[root@thuner-gw39 ~]# ls -l /run/containerd/containerd.sock
+[root@lab-x39 ~]# ls -l /run/containerd/containerd.sock
 ls: cannot access '/run/containerd/containerd.sock': No such file or directory
 ```
 
@@ -193,11 +193,11 @@ That means the K3s worker is using the K3s `containerd`.
 In k3s, `crictl` talks to `/run/k3s/containerd/containerd.sock` (NOT the raw containerd socket). This socket exposes only the CRI API, not all containerd features! Some examples are:
 
 ```bash
-[root@thuner-gw39 ~]# k3s crictl ps
+[root@lab-x39 ~]# k3s crictl ps
 CONTAINER           IMAGE               CREATED             STATE               NAME                ATTEMPT             POD ID              POD                            NAMESPACE
 637f11e8fa2eb       f7415d0003cb6       10 days ago         Running             lb-tcp-443          0                   28520b4a9a252       svclb-traefik-57d0a611-2xlrg   kube-system
 3674cac23a7a9       f7415d0003cb6       10 days ago         Running             lb-tcp-80           0                   28520b4a9a252       svclb-traefik-57d0a611-2xlrg   kube-system
-[root@thuner-gw39 ~]# k3s crictl images
+[root@lab-x39 ~]# k3s crictl images
 IMAGE                              TAG                 IMAGE ID            SIZE
 docker.io/library/rocky8-demo      latest              5950bc5bcb9b5       77.3MB
 docker.io/rancher/mirrored-pause   3.6                 6270bb605e12e       301kB
@@ -238,7 +238,7 @@ k3s ctr -n k8s.io images import rocky8-demo.tar
 Some examples are:
 
 ```bash
-[root@thuner-gw39 ~]# k3s ctr -n k8s.io images ls
+[root@lab-x39 ~]# k3s ctr -n k8s.io images ls
 REF                                                                                                      TYPE                                                      DIGEST                                                                  SIZE      PLATFORMS                                                      LABELS                          
 docker.io/library/rocky8-demo:latest                                                                     application/vnd.docker.distribution.manifest.v2+json      sha256:0de6ca232ee52115054f7deeb478dcd750479c30f6ffc7e61502983e098a9c86 73.7 MiB  linux/amd64                                                    io.cri-containerd.image=managed 
 docker.io/rancher/klipper-lb:v0.4.13                                                                     application/vnd.oci.image.index.v1+json                   sha256:7eb86d5b908ec6ddd9796253d8cc2f43df99420fc8b8a18452a94dc56f86aca0 4.8 MiB   linux/amd64,linux/arm/v7,linux/arm64                           io.cri-containerd.image=managed 
@@ -249,7 +249,7 @@ sha256:5950bc5bcb9b563f5d4c3c529042a212330b9b328fcbd7f8dbdcf6c25caa7ee8         
 sha256:6270bb605e12e581514ada5fd5b3216f727db55dc87d5889c790e4c760683fee                                  application/vnd.docker.distribution.manifest.list.v2+json sha256:74c4244427b7312c5b901fe0f67cbc53683d06f4f24c6faee65d4182bf0fa893 294.4 KiB linux/amd64,linux/arm/v7,linux/arm64,linux/s390x,windows/amd64 io.cri-containerd.image=managed 
 sha256:ee29d6321116af48cf9ecf604947c5d3638a2fd9c6cb8443543612c9184893e0                                  application/vnd.docker.distribution.manifest.v2+json      sha256:2206366b7eb2a2483e00527f4a0bedbb29a289b1ef800c746bc035f341eaff31 73.7 MiB  linux/amd64                                                    io.cri-containerd.image=managed 
 sha256:f7415d0003cb62ded390ed491fc842ee821878a04cc137196c21c1050101dd5e                                  application/vnd.oci.image.index.v1+json                   sha256:7eb86d5b908ec6ddd9796253d8cc2f43df99420fc8b8a18452a94dc56f86aca0 4.8 MiB   linux/amd64,linux/arm/v7,linux/arm64                           io.cri-containerd.image=managed 
-[root@thuner-gw39 ~]# k3s ctr -n k8s.io containers ls
+[root@lab-x39 ~]# k3s ctr -n k8s.io containers ls
 CONTAINER                                                           IMAGE                                   RUNTIME                  
 28520b4a9a252d5036e2acfa2567e9892c145cdb1628c8e63f59b63ec76ae185    docker.io/rancher/mirrored-pause:3.6    io.containerd.runc.v2    
 3674cac23a7a93be3dc1731718d54c0cce68bbd430f18fc1f20dc5cf448a701b    docker.io/rancher/klipper-lb:v0.4.13    io.containerd.runc.v2    

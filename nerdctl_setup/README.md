@@ -27,7 +27,7 @@ tar -xvzf nerdctl.tar.gz
 This will have installed `nerdctl`,  `containerd-rootless.sh`, and `containerd-rootless-setuptool.sh`. We can note that:
 
 ```bash
-[root@thuner-gw38 bin]# nerdctl version
+[root@lab-x38 bin]# nerdctl version
 WARN[0000] unable to determine buildctl version          error="exec: \"buildctl\": executable file not found in $PATH"
 Client:
  Version:	v2.2.0
@@ -75,9 +75,9 @@ Which installs:
 * Systemd service files for `containerd`, `buildkit`, and stargz snapshotter
 
 ```bash
-[root@thuner-gw38 local]# which buildctl
+[root@lab-x38 local]# which buildctl
 /usr/local/bin/buildctl
-[root@thuner-gw38 local]# which nerdctl
+[root@lab-x38 local]# which nerdctl
 /usr/local/bin/nerdctl
 ```
 

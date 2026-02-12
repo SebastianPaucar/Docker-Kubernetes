@@ -17,10 +17,10 @@ They don’t match.
 # **Create a Job**
 
 ```bash
-[root@thuner-gw38 ~]# mkdir ~/rock8-job
-[root@thuner-gw38 ~]# cd ~/rocky8-job
-[root@thuner-gw38 ~]# emacs Dockerfile
-[root@thuner-gw38 ~]# cat Dockerfile
+[root@lab-x38 ~]# mkdir ~/rock8-job
+[root@lab-x38 ~]# cd ~/rocky8-job
+[root@lab-x38 ~]# emacs Dockerfile
+[root@lab-x38 ~]# cat Dockerfile
 # Use official Rocky 8 image
 FROM rockylinux:8
 
@@ -41,7 +41,7 @@ CMD ["./hello.sh"]
 Kubernetes never forces Jobs to run on the master unless there are no other nodes or you explicitly schedule them there. Kubernetes schedules pods on any node that is **Ready**. It picks the worker node if the master is tainted.
 
 ```bash
-[root@thuner-gw38 ~]# nerdctl -n k8s.io build -t rocky8-demo:latest .
+[root@lab-x38 ~]# nerdctl -n k8s.io build -t rocky8-demo:latest .
 ```
 
 The `-n k8s.io` flag in `nerdctl` or `ctr` tells the tool to use the Kubernetes `containerd` namespace, which is where `k3s` (or any Kubernetes using `containerd`) keeps its images and containers, separate from the *default* `containerd` namespace.
@@ -60,7 +60,7 @@ Using `-n k8s.io` ensures the image is in the same namespace that `k3s` uses, so
 Check it exists:
 
 ```bash
-[root@thuner-gw38 ~]# nerdctl -n k8s.io images | grep rocky
+[root@lab-x38 ~]# nerdctl -n k8s.io images | grep rocky
 rocky8-demo   latest   0de6ca232ee5   3 days ago   linux/amd64   230.7MB   77.29MB
 ```
 
@@ -77,13 +77,13 @@ In the current setup, we must do the `.tar → scp → ctr load` workflow. This 
 * Therefore, Kubernetes would give **ImagePullBackOff**.
 
 ```bash
-[root@thuner-gw38 ~]# nerdctl -n k8s.io save -o rocky8-demo.tar rocky8-demo:latest
+[root@lab-x38 ~]# nerdctl -n k8s.io save -o rocky8-demo.tar rocky8-demo:latest
 ```
 
 Copy the tar to the worker node (`gw39`):
 
 ```bash
-[root@thuner-gw38 ~]# scp rocky8-demo.tar gw39:/tmp/
+[root@lab-x38 ~]# scp rocky8-demo.tar gw39:/tmp/
 ```
 
 Load the image into `containerd` on `gw39`:
@@ -91,11 +91,11 @@ Load the image into `containerd` on `gw39`:
 (On worker node `gw39`)
 
 ```bash
-[root@thuner-gw39 ~]# ctr -n k8s.io images import /tmp/rocky8-demo.tar
-[root@thuner-gw39 ~]# cd /tmp
-[root@thuner-gw39 tmp]# ls
+[root@lab-x39 ~]# ctr -n k8s.io images import /tmp/rocky8-demo.tar
+[root@lab-x39 ~]# cd /tmp
+[root@lab-x39 tmp]# ls
 rocky8-demo.tar
-[root@thuner-gw39 tmp]# ctr -n k8s.io images ls | grep rocky
+[root@lab-x39 tmp]# ctr -n k8s.io images ls | grep rocky
 docker.io/library/rocky8-demo:latest application/vnd.docker.distribution.manifest.v2+json sha256:0de6ca232ee52115054f7deeb478dcd750479c30f6ffc7e61502983e098a9c86 73.7 MiB linux/amd64 io.cri-containerd.image=managed 
 ```
 
@@ -120,7 +120,7 @@ This is normal Kubernetes behavior.
 Then we can verify if the pod is runnable:
 
 ```bash
-[root@thuner-gw39 ~]# k3s crictl images | grep rocky
+[root@lab-x39 ~]# k3s crictl images | grep rocky
 docker.io/library/rocky8-demo   latest   5950bc5bcb9b5   77.3MB
 ```
 
@@ -130,12 +130,12 @@ Kubernetes can run your Pod. (If it had appeared only in `ctr` and NOT in `crict
 
 # **Create the Job YAML**
 
-Get back to `thuner-gw38` to create the Job YAML:
+Get back to `lab-x38` to create the Job YAML:
 
 ```bash
-[root@thuner-gw38 ~]# cd rocky8-demo/
-[root@thuner-gw38 rocky8-demo]# emacs rocky8-job.yaml
-[root@thuner-gw38 rocky8-demo]# cat rocky8-job.yaml
+[root@lab-x38 ~]# cd rocky8-demo/
+[root@lab-x38 rocky8-demo]# emacs rocky8-job.yaml
+[root@lab-x38 rocky8-demo]# cat rocky8-job.yaml
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -158,7 +158,7 @@ The entire Job YAML is **100% created and controlled by you**, the user. Kuberne
 # **Apply the Job**
 
 ```bash
-[root@thuner-gw38 ~]# k3s kubectl apply -f rocky8-job.yaml
+[root@lab-x38 ~]# k3s kubectl apply -f rocky8-job.yaml
 ```
 
 Here Kubernetes immediately tries to schedule and start the pod. `kubelet`/`containerd` tries to pull the image named in your YAML. If the node where it lands does not have the image, the pod will fail with **ImagePullBackOff**.
@@ -179,9 +179,9 @@ By pre-loading the image on all potential nodes (your worker node `gw39`, as bef
 # **To see where the job landed:**
 
 ```bash
-[root@thuner-gw38 ~]# k3s kubectl get pods -o wide
+[root@lab-x38 ~]# k3s kubectl get pods -o wide
 NAME                     READY   STATUS      RESTARTS   AGE   IP            NODE
-rocky8-demo-job-7zzxc    0/1     Completed   0          22m   XX.YY.A.BC    thuner-gw39
+rocky8-demo-job-7zzxc    0/1     Completed   0          22m   XX.YY.A.BC    lab-x39
 ```
 
 We applied the Job, so now the Job has already run (or is running) on your cluster.
@@ -189,7 +189,7 @@ We applied the Job, so now the Job has already run (or is running) on your clust
 Check Jobs:
 
 ```bash
-[root@thuner-gw38 ~]# k3s kubectl get jobs
+[root@lab-x38 ~]# k3s kubectl get jobs
 NAME             STATUS     COMPLETIONS   DURATION   AGE
 rocky8-demo-job  Complete   1/1           4s         26m
 ```
@@ -197,7 +197,7 @@ rocky8-demo-job  Complete   1/1           4s         26m
 Check logs:
 
 ```bash
-[root@thuner-gw38 ~]# k3s kubectl logs rocky8-demo-job-7zzxc
+[root@lab-x38 ~]# k3s kubectl logs rocky8-demo-job-7zzxc
 Hi from Rocky 8 container!
 NAME="Rocky Linux"
 VERSION="8.9 (Green Obsidian)"

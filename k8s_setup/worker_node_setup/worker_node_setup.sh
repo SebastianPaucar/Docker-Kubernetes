@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-MASTER_NODE_HOSTNAME="thuner-gw38"
+MASTER_NODE_HOSTNAME="lab-x38"
 MASTER_NODE_PORT=6443
 
 echo "Checking connectivity to master $MASTER_NODE_HOSTNAME:$MASTER_NODE_PORT..."

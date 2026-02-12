@@ -7,9 +7,9 @@ This README explains the end-to-end process of building a container image for Ro
 ## Build the Image (Kubernetes Namespace)
 
 ```bash
-[root@thuner-gw38 rocky8-demo]# pwd
+[root@lab-x38 rocky8-demo]# pwd
 /root/rocky8-demo
-[root@thuner-gw38 rocky8-demo]# nerdctl -n k8s.io build -t sebastianpaucar/rocky8-test-docker-hub:latest -f /root/rocky8-demo/Dockerfile /root/rocky8-demo
+[root@lab-x38 rocky8-demo]# nerdctl -n k8s.io build -t sebastianpaucar/rocky8-test-docker-hub:latest -f /root/rocky8-demo/Dockerfile /root/rocky8-demo
 [+] Building 4.6s (9/9)                                                                                                                    
  => [internal] load build definition from Dockerfile                                                                                  0.1s
 [+] Building 4.7s (9/9) FINISHED                                                                                                           
@@ -82,7 +82,7 @@ But nerdctl is different. `nerdctl login` may eagerly validate repository scopes
 On a first attempt:
 
 ```bash
-[root@thuner-gw38 rocky8-demo]# nerdctl login docker.io
+[root@lab-x38 rocky8-demo]# nerdctl login docker.io
 Enter Username: sebastianpaucar
 Enter Password:
 ERRO[0011] failed to call tryLoginWithRegHost            error="failed to call rh.Authorizer.Authorize: failed to fetch oauth token: unexpected status from GET request to https://auth.docker.io/token?offline_token=true&service=registry.docker.io: 401 Unauthorized" i=0
@@ -129,8 +129,8 @@ So now we have to log out to solve it.
 It was just a matter of switching to a full-access PAT (Read, Write, Delete) and then logging in again. Docker Hub could finally issue `scope=repository:...:pull,push`. Everything succeeded.
 
 ```bash
-[root@thuner-gw38 rocky8-demo]# nerdctl logout docker.io
-[root@thuner-gw38 rocky8-demo]# nerdctl login docker.io
+[root@lab-x38 rocky8-demo]# nerdctl logout docker.io
+[root@lab-x38 rocky8-demo]# nerdctl login docker.io
 Enter Username: sebastianpaucar
 Enter Password: 
 WARNING! Your credentials are stored unencrypted in '/root/.docker/config.json'.
@@ -174,7 +174,7 @@ All Docker-compatible authentication data is stored under `/root/.docker/` with 
 ## `config.json`
 
 ```bash
-[root@thuner-gw38 rocky8-demo]# cat /root/.docker/config.json
+[root@lab-x38 rocky8-demo]# cat /root/.docker/config.json
 {
 	"auths": {
 		"https://index.docker.io/v1/": {
@@ -210,7 +210,7 @@ Important:
 ## Local images in containerd
 
 ```bash
-[root@thuner-gw38 rocky8-demo]# nerdctl -n k8s.io images
+[root@lab-x38 rocky8-demo]# nerdctl -n k8s.io images
 REPOSITORY                                TAG       IMAGE ID        CREATED           PLATFORM       SIZE       BLOB SIZE
 sebastianpaucar/rocky8-test-docker-hub    latest    0de6ca232ee5    31 minutes ago    linux/amd64    230.7MB    77.29MB
 rocky8-demo                               latest    0de6ca232ee5    5 days ago        linux/amd64    230.7MB    77.29MB
@@ -227,7 +227,7 @@ Note that `sebastianpaucar/rocky8-test-docker-hub` and `rocky8-demo` have the sa
 ## Pushing an Image to Docker Hub with `nerdctl` (`containerd`/`k8s.io`)
 
 ```bash
-[root@thuner-gw38 rocky8-demo]# nohup nerdctl -n k8s.io push docker.io/sebastianpaucar/rocky8-test-docker-hub:latest > push_command.out 2>&1 &
+[root@lab-x38 rocky8-demo]# nohup nerdctl -n k8s.io push docker.io/sebastianpaucar/rocky8-test-docker-hub:latest > push_command.out 2>&1 &
 ```
 
 This command uploads a locally built image from containerd to Docker Hub.
@@ -275,7 +275,7 @@ This is what happened in our case.
 3. **Layer upload (content-addressed)**
 
 ```bash
-[root@thuner-gw38 rocky8-demo]# cat push_command.out
+[root@lab-x38 rocky8-demo]# cat push_command.out
 manifest-sha256:0de6ca232ee52115054f7deeb478dcd750479c30f6ffc7e61502983e098a9c86: done           |++++++++++++++++++++++++++++++++++++++| 
 config-sha256:5950bc5bcb9b563f5d4c3c529042a212330b9b328fcbd7f8dbdcf6c25caa7ee8:   done           |++++++++++++++++++++++++++++++++++++++| 
 layer-sha256:6c04e6ab434a519ed87a9cac44a7618fc93a4cd7fc439f1525304279329ec610:    done           |++++++++++++++++++++++++++++++++++++++| 
@@ -305,8 +305,8 @@ That’s why pushes are fast after the first time.
 The YAML file:
 
 ```bash
-[root@thuner-gw38 rocky8-demo]# emacs rocky8-job-docker-hub.yaml
-[root@thuner-gw38 rocky8-demo]# cat rocky8-job-docker-hub.yaml
+[root@lab-x38 rocky8-demo]# emacs rocky8-job-docker-hub.yaml
+[root@lab-x38 rocky8-demo]# cat rocky8-job-docker-hub.yaml
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -356,7 +356,7 @@ This is subject to restart and retry behavior:
 ## Removing the local image for testing:
 
 ```bash
-[root@thuner-gw38 rocky8-demo]# nerdctl -n k8s.io rmi docker.io/sebastianpaucar/rocky8-test-docker-hub:latest
+[root@lab-x38 rocky8-demo]# nerdctl -n k8s.io rmi docker.io/sebastianpaucar/rocky8-test-docker-hub:latest
 Untagged: docker.io/sebastianpaucar/rocky8-test-docker-hub:latest@sha256:0de6ca232ee52115054f7deeb478dcd750479c30f6ffc7e61502983e098a9c86
 Deleted: sha256:c1827ee010dbe3d0e7aa85282da0a80f74f02da1c44d6e81313cccdf465e58c6
 Deleted: sha256:a7e08d91226a25fe15865bb9932019d34f4aa84d08ba289cd731e75da706a7cf
@@ -374,7 +374,7 @@ This command:
 Verify the removal:
 
 ```bash
-[root@thuner-gw38 rocky8-demo]# nerdctl -n k8s.io images
+[root@lab-x38 rocky8-demo]# nerdctl -n k8s.io images
 REPOSITORY     TAG       IMAGE ID        CREATED       PLATFORM       SIZE       BLOB SIZE
 rocky8-demo    latest    0de6ca232ee5    5 days ago    linux/amd64    230.7MB    77.29MB
 ```
@@ -388,7 +388,7 @@ rocky8-demo    latest    0de6ca232ee5    5 days ago    linux/amd64    230.7MB   
 ## Applying the Job:
 
 ```bash
-[root@thuner-gw38 rocky8-demo]# k3s kubectl apply -f rocky8-job-docker-hub.yaml
+[root@lab-x38 rocky8-demo]# k3s kubectl apply -f rocky8-job-docker-hub.yaml
 job.batch/rocky8-test-job-docker-hub created
 ```
 
@@ -431,10 +431,10 @@ Docker Hub → kubectl Job → Kubernetes Pod
 1. **Listing Pods**
 
 ```bash
-[root@thuner-gw38 rocky8-demo]# k3s kubectl get pods -o wide
+[root@lab-x38 rocky8-demo]# k3s kubectl get pods -o wide
 NAME                               READY   STATUS      RESTARTS   AGE   IP           NODE         NOMINATED NODE   READINESS GATES
-rocky8-demo-job-7zzxc              0/1     Completed   0          2d    10.42.1.13   thuner-gw39   <none>           <none>
-rocky8-test-job-docker-hub-k7r9q   0/1     Completed   0          93s   10.42.1.14   thuner-gw39   <none>           <none>
+rocky8-demo-job-7zzxc              0/1     Completed   0          2d    10.42.1.13   lab-x39   <none>           <none>
+rocky8-test-job-docker-hub-k7r9q   0/1     Completed   0          93s   10.42.1.14   lab-x39   <none>           <none>
 ```
 
 What this means:
@@ -454,7 +454,7 @@ What this means:
 2. **Checking Job output (container logs)**
 
 ```bash
-[root@thuner-gw38 rocky8-demo]# k3s kubectl logs rocky8-test-job-docker-hub-k7r9q
+[root@lab-x38 rocky8-demo]# k3s kubectl logs rocky8-test-job-docker-hub-k7r9q
 Hi from Rocky 8 container!
 NAME="Rocky Linux"
 VERSION="8.9 (Green Obsidian)"
@@ -487,7 +487,7 @@ This is runtime confirmation, not metadata.
 3. **Verifying the image pull source**  
 
 ```bash
-[root@thuner-gw38 rocky8-demo]# k3s kubectl describe pod rocky8-test-job-docker-hub-k7r9q | grep -i "Pulled"
+[root@lab-x38 rocky8-demo]# k3s kubectl describe pod rocky8-test-job-docker-hub-k7r9q | grep -i "Pulled"
 Normal  Pulled     2m14s  kubelet  Successfully pulled image "docker.io/sebastianpaucar/rocky8-test-docker-hub:latest" in 932ms (932ms including waiting). Image size: 77285864 bytes.
 
 ```
